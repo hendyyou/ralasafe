@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query name="Query branch and its sub-branchs employees" ds="app"
+    isRawSQL="false" type="sql">
+    <select isDistinct="false" mappingClass="org.ralasafe.demo.Employee">
+        <column name="ID" tableAlias="t0" order="ASC" sqlType="INT(11)"
+            javaType="int" property="id"/>
+        <column name="LOGINNAME" tableAlias="t0" order="ASC"
+            sqlType="VARCHAR(30)" javaType="java.lang.String" property="loginName"/>
+        <column name="NAME" tableAlias="t0" order="ASC"
+            sqlType="VARCHAR(30)" javaType="java.lang.String" property="name"/>
+        <column name="PASSWORD" tableAlias="t0" order="ASC"
+            sqlType="VARCHAR(30)" javaType="java.lang.String" property="password"/>
+        <column name="COMPANYID" tableAlias="t0" order="ASC"
+            sqlType="INT(11)" javaType="int" property="companyId"/>
+        <column name="DEPARTMENTID" tableAlias="t0" order="ASC"
+            sqlType="INT(11)" javaType="int" property="departmentId"/>
+        <column name="ISMANAGER" tableAlias="t0" order="ASC"
+            sqlType="INT(11)" javaType="int" property="isManager"/>
+        <column name="HIREDATE" tableAlias="t0" order="ASC"
+            sqlType="DATETIME(19)" javaType="java.util.Date" property="hireDate"/>
+        <column name="NAME" tableAlias="t1" function="" order="ASC"
+            sqlType="VARCHAR(30)" javaType="java.lang.String"
+            property="companyName" readOnly="false"/>
+        <column name="NAME" tableAlias="t2" function="" order="ASC"
+            sqlType="VARCHAR(30)" javaType="java.lang.String"
+            property="departmentName" readOnly="false"/>
+    </select>
+    <from>
+        <table schema="" name="DEMOUSER" alias="t0"/>
+        <table schema="" name="COMPANY" alias="t1"/>
+        <table schema="" name="DEPARTMENT" alias="t2"/>
+    </from>
+    <where>
+        <expressionGroup linker="AND">
+            <binaryExpression>
+                <operand1>
+                    <column name="COMPANYID" tableAlias="t0" order="ASC"/>
+                </operand1>
+                <simpleOperator>=</simpleOperator>
+                <operand2>
+                    <column name="ID" tableAlias="t1" order="ASC"/>
+                </operand2>
+            </binaryExpression>
+            <binaryExpression>
+                <operand1>
+                    <column name="DEPARTMENTID" tableAlias="t0" order="ASC"/>
+                </operand1>
+                <simpleOperator>=</simpleOperator>
+                <operand2>
+                    <column name="ID" tableAlias="t2" order="ASC"/>
+                </operand2>
+            </binaryExpression>
+            <expressionGroup linker="OR">
+                <binaryExpression>
+                    <operand1>
+                        <column name="ID" tableAlias="t1" order="ASC"/>
+                    </operand1>
+                    <simpleOperator>=</simpleOperator>
+                    <operand2>
+                        <userValue key="companyId"/>
+                    </operand2>
+                </binaryExpression>
+                <binaryExpression>
+                    <operand1>
+                        <column name="PARENTID" tableAlias="t1" order="ASC"/>
+                    </operand1>
+                    <simpleOperator>=</simpleOperator>
+                    <operand2>
+                        <userValue key="companyId"/>
+                    </operand2>
+                </binaryExpression>
+            </expressionGroup>
+        </expressionGroup>
+    </where>
+    <groupBy/>
+    <orderBy/>
+    <rawSQL>
+        <content xml:space="preserve"><![CDATA[]]></content>
+        <select isDistinct="false"/>
+    </rawSQL>
+    <storedProcedure>
+        <content></content>
+        <select isDistinct="false"/>
+    </storedProcedure>
+</query>

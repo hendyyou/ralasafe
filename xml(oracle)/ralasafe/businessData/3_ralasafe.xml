@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<businessData
+    name="Plus today&apos;s loan amount,less than $20000 record" isRawScript="false">
+    <defineVariable name="limit">
+        <simpleValue type="integer">20000</simpleValue>
+    </defineVariable>
+    <defineVariable name="todayLoanAmount">
+        <queryRef id="9" name="Today loan money amount"/>
+    </defineVariable>
+    <defineVariable name="loanMoney">
+        <hintValue hint="_$businessData" key="money"/>
+    </defineVariable>
+    <defineVariable name="todayLeftLimit">
+        <formula operator="-" type="integer">
+            <variable name="limit"/>
+            <variable name="todayLoanAmount"/>
+        </formula>
+    </defineVariable>
+    <exprGroup linker="AND">
+        <binaryExpr>
+            <variable1 name="loanMoney"/>
+            <simpleOperator>&lt;=</simpleOperator>
+            <variable2 name="todayLeftLimit"/>
+        </binaryExpr>
+    </exprGroup>
+    <rawScript>
+        <content xml:space="preserve"><![CDATA[]]></content>
+    </rawScript>
+</businessData>

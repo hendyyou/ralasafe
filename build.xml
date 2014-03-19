@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="project" default="release" basedir=".">
+	<tstamp>
+    <format property="TODAY" pattern="yyyyMMdd" />
+  </tstamp>
+	<property name="productVersion" value="-1.2-v${TODAY}"></property>
+	<property name="ralasafe.classes" value="build/ralasafeClasses"></property>
+	
+	<path id="ralasafe.classpath">
+		<fileset dir="lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	
+	<target name="init">
+		<mkdir dir="${ralasafe.classes}"/>
+		<mkdir dir="build/lib"/>
+		<mkdir dir="build/3rdlib"/>
+	</target>
+
+	<target name="clean">
+		<delete dir="${ralasafe.classes}"/>
+		<delete file="build/lib/ralasafe${productVersion}.jar"/>
+		<delete dir="build/3rdlib"/>
+		<delete>
+			<fileset dir="build">
+				<include name="ralasafe*${productVersion}*.zip"/>
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="compile" depends="init">
+		<javac compiler="javac1.4" destdir="${ralasafe.classes}" 
+			encoding="utf-8" failonerror="true"
+			debug="true" debuglevel="lines,vars,source">
+			<classpath refid="ralasafe.classpath" />
+			<src path="src" />
+			<src path="entitlement" />
+			<src path="constants-and-commons" />
+			<src path="util" />
+			<src path="for-client-interface" />
+			<src path="client" />
+			<src path="orm" />
+			<src path="user" />
+		</javac>
+		
+		<!-- copy properties files  -->
+		<copy todir="${ralasafe.classes}">
+			<fileset dir="src">
+				<include name="*.properties"/>
+				<exclude name="log4j.properties"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="build/lib/ralasafe${productVersion}.jar" basedir="${ralasafe.classes}" />
+	</target>
+	
+	<!-- ref 3rd party libs -->
+	<target name="refLib">		
+		<copy todir="build/3rdlib/" flatten="true">
+			<fileset dir="lib">
+				<include name="**/*.jar" />
+				<include name="**/*.txt" />
+				<exclude name="db2/*.jar"/>
+				<exclude name="mysql/*.jar"/>
+				<exclude name="oracle/*.jar"/>
+				<exclude name="sqlserver/*.jar"/>
+				<exclude name="servlet/*.jar"/>
+			</fileset>
+		</copy>
+		
+		<!--zip destfile="thirdPartyLibary.zip" basedir="lib"/-->
+	</target>
+	
+	<target name="javadoc">		
+		<mkdir dir="build/javadoc" />
+		<javadoc access="public" author="false" 
+			            destdir="build/javadoc" 
+						noindex="false" nonavbar="false" notree="false" source="1.4" 
+						splitindex="true" use="true" version="false"
+						locale="en_US" encoding="UTF-8" charset="UTF-8"
+			      windowtitle="Ralasafe Open Source Access Control Middleware API"
+			      failonerror="true">
+			<fileset dir="for-client-interface">
+				<include name="org/ralasafe/Ralasafe.java" />
+				<include name="org/ralasafe/WebRalasafe.java" />
+				<include name="org/ralasafe/user/User.java" />
+			</fileset>
+
+			<fileset dir="entitlement">
+				<include name="org/ralasafe/entitle/Decision.java" />
+				<include name="org/ralasafe/entitle/QueryResult.java" />
+				<include name="org/ralasafe/entitle/CustomizedWhere.java" />
+			</fileset>
+
+			<fileset dir="client">
+				<include name="org/ralasafe/privilege/Privilege.java" />
+				<include name="org/ralasafe/webFilter/UrlAclFilter.java" />
+				<include name="org/ralasafe/webFilter/LoginFilter.java" />
+			</fileset>
+			
+			<fileset dir="util">
+				<include name="org/ralasafe/encrypt/*.java" />
+			</fileset>
+			
+			<doctitle><![CDATA[<h1>Ralasafe Open Source Access Control Middleware API</h1>]]></doctitle>
+			<bottom><![CDATA[Copyright &#169; 2004-2011 Wang Jinbao, <a href="http://www.ralasafe.org">The Ralasafe Project</a>
+				All Rights Reserved. <br/><font color="red">This is not a complete javadoc, but it's enough for programming.</font>]]></bottom>
+		</javadoc>
+	</target>
+
+	<!-- release ralasafe(jar and war) -->
+	<target name="release" depends="jar,refLib">
+		<copy file="favicon.ico" tofile="WebContent/ralasafe/favicon.ico" />
+		
+		<delete dir="build/tmp" />
+		<!-- copy CHANGES.TXT -->
+		<copy file="CHANGES.TXT" todir="build/tmp" />
+		
+		<!-- copy jars -->
+		<copy file="build/lib/ralasafe${productVersion}.jar" todir="build/tmp/lib" />
+		<copy todir="build/tmp/3rdlib">
+			<fileset dir="build/3rdlib/" />
+		</copy>
+		
+		<!-- copy sql file -->
+		<copy todir="build/tmp/sql">
+			<fileset dir="sql"/>
+		</copy>
+
+		<!-- copy web content -->
+		<copy todir="build/tmp/WebContent/ralasafe">
+			<fileset dir="WebContent/ralasafe" />
+		</copy>		
+		<delete dir="build/tmp/WebContent/ralasafe/demo/" />
+		<copy todir="build/tmp/WebContent/WEB-INF">
+			<fileset dir="WebContent/WEB-INF" />
+		</copy>
+		
+		<!-- copy web.xml, still use name ralasafe_web.xml, void overwrite developer's web.xml -->
+		<copy file="WebContent/WEB-INF/web.xml" 
+					tofile="build/tmp/WebContent/WEB-INF/ralasafe_web.xml" 
+					overwrite="yes" />
+		<delete file="build/tmp/WebContent/WEB-INF/web.xml" />
+		
+		<!-- copy license -->
+		<copy todir="build/tmp/WebContent/ralasafe/" file="license.txt" overwrite="yes"/>
+		<copy todir="build/tmp/" file="license.txt" overwrite="yes" />
+		
+		<zip destfile="build/ralasafe${productVersion}.zip" basedir="build/tmp" />
+		<delete dir="build/tmp"/>
+	</target>
+	
+	<!-- demo -->
+	<target name="demo" depends="release">
+		<delete dir="build/tmp" />
+		<unzip dest="build/tmp" src="build/ralasafe${productVersion}.zip" />
+		
+		<!-- copy libs -->
+		<copy todir="build/tmp/WEB-INF/lib">
+			<fileset dir="build/tmp/lib" />
+			<fileset dir="build/tmp/3rdlib" />
+			<fileset dir="lib/mysql" />
+		</copy>
+		<move todir="build/tmp/">
+			<fileset dir="build/tmp/WebContent" />
+		</move>
+		<delete dir="build/tmp/lib" />
+		<delete dir="build/tmp/3rdlib" />
+		<delete dir="build/tmp/WebContent" />
+		
+		<!-- compile demo classes -->
+		<mkdir dir="build/tmp/WEB-INF/classes" />
+		<javac compiler="javac1.4" destdir="build/tmp/WEB-INF/classes" failonerror="true">
+			<classpath>
+				<fileset dir="build/tmp/WEB-INF/lib/">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="lib/servlet">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+			<src path="demo" />
+		</javac>
+		
+		<!-- copy log4j.properties -->
+		<copy file="src/log4j.properties" 
+				tofile="build/tmp/WEB-INF/classes/log4j.properties" 
+				overwrite="yes" />
+		
+		<!-- copy demo src -->
+		<mkdir dir="build/tmp/src" />
+		<copy todir="build/tmp/src">
+			<fileset dir="demo" />
+		</copy>
+		
+		<!-- copy demo sql file -->
+		<copy todir="build/tmp/sql">
+			<fileset dir="sql"/>
+		</copy>
+	
+		<!-- copy demo config files -->
+		<copy todir="build/tmp/xml(mysql)">
+			<fileset dir="xml(mysql)"/>
+		</copy>
+		<copy todir="build/tmp/xml(oracle)">
+			<fileset dir="xml(oracle)"/>
+		</copy>
+		
+		<!-- copy demo web content -->
+		<copy todir="build/tmp/ralasafe/demo">
+			<fileset dir="WebContent/ralasafe/demo" />
+		</copy>
+		
+			<!-- copy web.xml -->
+		<copy file="WebContent/WEB-INF/web.xml" 
+					tofile="build/tmp/WEB-INF/web.xml" 
+					overwrite="yes" />
+					
+		<zip destfile="build/ralasafe_demo${productVersion}.war" basedir="build/tmp" />
+		<delete dir="build/tmp"/>
+	</target>
+	
+	<!-- use compile task as a depend task, to ensure source could be compiled successfully-->
+	<target name="source" depends="compile">
+		<zip destfile="build/ralasafe_src${productVersion}.zip">
+	    	<zipfileset prefix="src" dir="src"/>
+	    	<zipfileset prefix="entitlement" dir="entitlement"/>
+			<zipfileset prefix="demo" dir="demo"/>
+			<zipfileset prefix="test" dir="test"/>
+	    	<zipfileset prefix="constants-and-commons" dir="constants-and-commons"/>
+			<zipfileset prefix="util" dir="util"/>
+			<zipfileset prefix="for-client-interface" dir="for-client-interface"/>
+			<zipfileset prefix="client" dir="client"/>
+	    	<zipfileset prefix="orm" dir="orm"/>
+			<zipfileset prefix="user" dir="user"/>
+			<zipfileset prefix="lib" dir="lib"/>
+			<zipfileset prefix="sql" dir="sql"/>
+			<zipfileset prefix="WebContent" dir="WebContent"/>
+			<zipfileset prefix="xml(mysql)" dir="xml(mysql)"/>
+			<zipfileset prefix="xml(oracle)" dir="xml(oracle)"/>
+			<fileset dir="." includes="CHANGES.TXT"/>
+			<fileset dir="." includes="build.xml"/>
+			<fileset dir="." includes="favicon.ico"/>
+			<fileset dir="." includes="license.txt"/>
+		</zip>
+	</target>
+	
+	<target name="all" depends="clean,release,demo,javadoc,source">
+	</target>
+</project>
